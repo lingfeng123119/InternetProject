@@ -1,5 +1,6 @@
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from internetPro.nat_config import NatSettings, nat_config, get_translations, global_settings
+
 # 注：具体网络图如下所示
 #           HostB
 #             #
@@ -13,10 +14,7 @@ from django.shortcuts import redirect, render
 #             #
 #           HostA
 
-# 接收静态配置项
-from internetPro.nat_config import NatSettings, nat_config, get_translations
-
-
+global_settings
 # 接收传递的参数
 def setting(request):
     # 如果用户选择静态配置路由
@@ -36,15 +34,15 @@ def setting(request):
         routerC_ip = request.GET.get('routerC')
 
         # 后端处理
-        nat_setting = NatSettings()
-        nat_setting.rta['f0/0']['ip'] = routerA_ip
-        nat_setting.rta['f0/0']['mask'] = routerA_mask
-        nat_setting.rtb['f0/0']['ip'] = routerB_ip
-        nat_setting.rtb['f0/0']['mask'] = routerB_mask
-        nat_setting.host_a['ip'] = hostA_ip
-        nat_setting.rtc['f0/0']['ip'] = routerC_ip
 
-        is_success, message = nat_config(nat_setting)
+        global_settings.rta['f0/0']['ip'] = routerA_ip
+        global_settings.rta['f0/0']['mask'] = routerA_mask
+        global_settings.rtb['f0/0']['ip'] = routerB_ip
+        global_settings.rtb['f0/0']['mask'] = routerB_mask
+        global_settings.host_a['ip'] = hostA_ip
+        global_settings.rtc['f0/0']['ip'] = routerC_ip
+
+        is_success, message = nat_config()
         return HttpResponse(message)
 
     # 如果用户选择动态配置路由
@@ -60,12 +58,12 @@ def setting(request):
         routerB_mask = transfer_mask(routerB_mask)
 
         # 后端处理
-        nat_setting = NatSettings()
-        nat_setting.rta['f0/0']['ip'] = routerA_ip
-        nat_setting.rta['f0/0']['mask'] = routerA_mask
-        nat_setting.rtb['f0/0']['ip'] = routerB_ip
-        nat_setting.rtb['f0/0']['mask'] = routerB_mask
-        is_success, message = nat_config(nat_setting)
+
+        global_settings.rta['f0/0']['ip'] = routerA_ip
+        global_settings.rta['f0/0']['mask'] = routerA_mask
+        global_settings.rtb['f0/0']['ip'] = routerB_ip
+        global_settings.rtb['f0/0']['mask'] = routerB_mask
+        is_success, message = nat_config()
         return HttpResponse(message)
 
 # 获取映射表
