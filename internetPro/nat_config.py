@@ -2,7 +2,7 @@ import telnetlib
 import re
 
 
-global_settings = NatSettings()
+
 
 
 def valid_ip(ip):
@@ -114,6 +114,7 @@ class NatSettings:
     def validate(self):
         pass
 
+global_settings = NatSettings()
 
 def nat_config():
     settings = global_settings
