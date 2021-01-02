@@ -2,6 +2,9 @@ import telnetlib
 import re
 
 
+global_settings = NatSettings()
+
+
 def valid_ip(ip):
     parts = ip.split('.')
     if len(parts) != 4:
@@ -105,7 +108,6 @@ class NatSettings:
             self.rtc['f0/0']['ip']: '192.168.1.34',
             self.host_a['ip']: '192.168.1.35',
         }
-        self.dynamic_nat = {}
         
         self.err_msg = ''
 
@@ -113,7 +115,8 @@ class NatSettings:
         pass
 
 
-def nat_config(settings):
+def nat_config():
+    settings = global_settings
     atn = _init(settings.rta[settings.rta['c']]['ip'],
                 settings.login_passwd,
                 settings.enable_passwd)
@@ -206,6 +209,10 @@ def clear_static_nat_config(tn, settings):
 
 
 def get_translations():
+    settings = global_settings
+    atn = _init(settings.rta[settings.rta['c']]['ip'],
+                settings.login_passwd,
+                settings.enable_passwd)
     return ''
 
 
