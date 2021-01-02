@@ -50,6 +50,10 @@ def _convert_v4(v4):
            parts[3]
 
 
+def _int_to_v4(int_v4):
+    return '.'.join([str(((int_v4 << i) % (1 << 32)) >> 24) for i in range(0, 32, 8)])
+
+
 class NatSettings:
     def __init__(self):
         self.rta = {
@@ -101,6 +105,7 @@ class NatSettings:
             self.rtc['f0/0']['ip']: '192.168.1.34',
             self.host_a['ip']: '192.168.1.35',
         }
+        self.dynamic_nat = {}
         
         self.err_msg = ''
 
@@ -127,55 +132,101 @@ def nat_config(settings):
                 settings.login_passwd,
                 settings.enable_passwd)
 
-    # Step 1.
+    # Step 1. Basic ip address config.
     # 1.1 RTA
     _inputln(atn, 'conf t')
-    atn.read_until(b'Router(config)#')
+    _read_until(atn, 'Router(config)#'))
     _inputln(atn, 'ip route 0.0.0.0 0.0.0.0 %s' % settings.rtb['s0/0/0']['ip'])
-    atn.read_until(b'Router(config)#')
+    _read_until(atn, 'Router(config)#')
     # 1.2 RTB
     _inputln(btn, 'conf t')
-    btn.read_until(b'Router(config)#')
+    _read_until(btn, 'Router(config)#')
     _inputln(btn, 'ip route %s %s %s' % (settings.xyz_net['ip'], settings.xyz_net['mask'], settings.rta['s0/0/0']['ip']))
-    btn.read_until(b'Router(config)#')
+    _read_until(btn, 'Router(config)#')
     # 1.3 RTC
     _inputln(ctn, 'conf t')
-    ctn.read_until(b'Router(config)#')
+    _read_until(ctn, 'Router(config)#')
     _inputln(ctn, 'ip route 0.0.0.0 0.0.0.0 %s' % settings.rta['f0/0']['ip'])
-    ctn.read_until(b'Router(config)#')
+    _read_until(ctn, 'Router(config)#')
+    _inputln(ctn, 'end')
+    _read_until(ctn, 'Router#')
     # 1.4 Test connection.
     _inputln(atn, 'end')
-    atn.read_until(b'Router#')
+    _read_until(atn, 'Router#')
     if _test_ping(atn, settings.host_a['ip']) < .5:
         return False, 'Failed to ping host A from RTA after step 1.'
     if _test_ping(atn, settings.host_b['ip']) < .5:
         return False, 'Failed to ping host B from RTA after step 1.'
 
-    # Step 2.
+    # Step 2. NAT config.
     _inputln(atn, 'conf t')
-    atn.read_until(b'Router(config)#')
-    # 2.1-1 Static NAT.
+    _read_until(atn, 'Router(config)#')
     if settings.use_static:
+        # 2.1-1 Static NAT.
         for src_ip in settings.static_nat:
             _inputln(atn, 'ip nat inside source static %s %s' % (src_ip, settings.static_nat[src_ip]))
-            atn.read_until(b'Router(config)#')
+            _read_until(atn, 'Router(config)#')
+    else:
+        # 2.1-2 Dynamic NAT
+        clear_static_nat_config(atn, settings)
+        _inputln(atn, 'ip nat pool globalXYZ %s %s netmask %s' % (
+            _get_first_ip(settings.xyz_net['ip'], settings.xyz_net['mask']), 
+            _get_last_ip(settings.xyz_net['ip'], settings.xyz_net['mask']),
+            settings.xyz_net['mask']
+        ))
+        _read_until(atn, 'Router(config)#')
+        _inputln(atn, 'access-list 1 permit %s %s' % (
+            _int_to_v4(_convert_v4(settings.rta['f0/0']['ip']) & _convert_v4(settings.rta['f0/0']['mask'])),
+            _int_to_v4(~_convert_v4(settings.rta['f0/0']['ip']) % (1 << 32))
+        ))
+        _read_until(atn, 'Router(config)#')
+        _inputln(atn, 'ip nat inside source list 1 pool globalXYZ overload')
+        _read_until(atn, 'Router(config)#')
+    # 2.2 Interface delegation.
     _inputln(atn, 'int f0/0')
-    atn.read_until(b'Router(config-if)#')
+    _read_until(atn, 'Router(config-if)#')
     _inputln(atn, 'ip nat inside')
-    atn.read_until(b'Router(config-if)#')
+    _read_until(atn, 'Router(config-if)#')
     _inputln(atn, 'int s0/0/0')
-    atn.read_until(b'Router(config-if)#')
+    _read_until(atn, 'Router(config-if)#')
     _inputln(atn, 'end')
-    atn.read_until(b'Router#')
-    # 2.2 Test connection.
+    _read_until(atn, 'Router#')
+    # 2.3 Test connection.
     if settings.use_static:
         if _test_ping(ctn, settings.host_b['ip']) < .5:
             return False, 'Failed to ping host B from RTC after step 2.'
 
+    return True, 'Success.'
+
+
+def clear_static_nat_config(tn, settings):
+    for private_ip, public_ip in settings.static_nat.items():
+        _inputln(tn, 'no ip nat inside source static %s %s', (private_ip, public_ip))
+        _read_until(tn, 'Router(config)#')
+
+
+def get_translations():
+    return ''
+
+
+def get_statistics():
+    return ''
+
+
+def _get_first_ip(net_ip, net_mask):
+    ip_0 = _convert_v4(net_ip)
+    return _int_to_v4(ip_0 + 1)
+
+
+def _get_last_ip(net_ip, net_mask):
+    ip_0 = _convert_v4(net_ip)
+    mask_v = _convert_v4(net_mask)
+    return _int_to_v4((ip_0 | (~mask_v) % (1 << 32) - 1))
+
 
 def _test_ping(tn, ip):
     _inputln(tn, 'ping %s' % ip)
-    s = tn.read_until(b'Router#', timeout=12)
+    s = _read_until(tn, 'Router#', timeout=12)
     p = 'Success rate is (\\d+) percent'
     rate = int(re.findall(p, s)[0]) / 100
     return rate
@@ -183,30 +234,34 @@ def _test_ping(tn, ip):
 
 def _config_int(tn, int_name, ip_mask):
     _inputln(tn, 'conf t')
-    tn.read_until(b'Router(config)#')
+    _read_until(tn, 'Router(config)#')
     _inputln(tn, 'int %s' % int_name)
-    tn.read_until(b'Router(config-if)#')
+    _read_until(tn, 'Router(config-if)#')
     _inputln(tn, 'ip address %s %s' % (ip_mask['ip'], ip_mask['mask']))
-    tn.read_until(b'Router(config-if)#')
+    _read_until(tn, 'Router(config-if)#')
     _inputln(tn, 'no shut')
-    tn.read_until(b'Router(config-if)#')
+    _read_until(tn, 'Router(config-if)#')
     _inputln(tn, 'end')
-    tn.read_until(b'Router#')
+    _read_until(tn, 'Router#')
 
 
 def _inputln(tn, txt):
     tn.write(('%s\n' % txt).encode())
 
 
+def _read_until(tn, til, timeout=None):
+    return tn.read_until(til.encode(), timeout=timeout)
+
+
 def _init(host, login_passwd, enable_passwd):
     tn = telnetlib.Telnet(host)
-    tn.read_until(b'Password: ')
+    _read_until(tn, 'Password: ')
     _inputln(tn, login_passwd)
-    tn.read_until(b'Router>')
+    _read_until(tn, 'Router>')
     _inputln(tn, 'enable')
-    tn.read_until(b'Password: ')
+    _read_until(tn, 'Password: ')
     _inputln(tn, enable_passwd)
-    tn.read_until(b'Router#')
+    _read_until(tn, 'Router#')
     return tn
 
 
