@@ -14,9 +14,10 @@ from django.shortcuts import redirect, render
 #           HostA
 
 # 接收静态配置项
-from internetPro.nat_config import NatSettings, nat_config
+from internetPro.nat_config import NatSettings, nat_config, get_translations
 
 
+# 接收传递的参数
 def setting(request):
     # 如果用户选择静态配置路由
     if request.GET.get("status"):
@@ -67,13 +68,10 @@ def setting(request):
         is_success, message = nat_config(nat_setting)
         return HttpResponse(message)
 
-
-
-
-
-
-
-
+# 获取映射表
+def getTranslationTable(request):
+    translation_table = get_translations()
+    return HttpResponse(translation_table)
 
 
 # mask转换
@@ -90,9 +88,6 @@ def transfer_mask(mask):
     mask_int = "%d.%d.%d.%d" % (mask_int1,mask_int2,mask_int3,mask_int4)
     return mask_int
 
-def a():
-    print(1234+".")
-a()
 
 
 

@@ -135,7 +135,7 @@ def nat_config(settings):
     # Step 1. Basic ip address config.
     # 1.1 RTA
     _inputln(atn, 'conf t')
-    _read_until(atn, 'Router(config)#'))
+    _read_until(atn, 'Router(config)#')
     _inputln(atn, 'ip route 0.0.0.0 0.0.0.0 %s' % settings.rtb['s0/0/0']['ip'])
     _read_until(atn, 'Router(config)#')
     # 1.2 RTB
