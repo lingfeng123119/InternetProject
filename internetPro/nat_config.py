@@ -213,11 +213,17 @@ def get_translations():
     atn = _init(settings.rta[settings.rta['c']]['ip'],
                 settings.login_passwd,
                 settings.enable_passwd)
-    return ''
+    _inputln(atn, 'show ip nat translations verbose')
+    return _read_until(atn, 'Router#')
 
 
 def get_statistics():
-    return ''
+    settings = global_settings
+    atn = _init(settings.rta[settings.rta['c']]['ip'],
+                settings.login_passwd,
+                settings.enable_passwd)
+    _inputln(atn, 'show ip nat statistics')
+    return _read_until(atn, 'Router#')
 
 
 def _get_first_ip(net_ip, net_mask):
@@ -257,7 +263,11 @@ def _inputln(tn, txt):
 
 
 def _read_until(tn, til, timeout=None):
-    return tn.read_until(til.encode(), timeout=timeout)
+    res = tn.read_until(til.encode(), timeout=timeout)
+    while res.find(til) < 0:
+        tn.write(b' ')
+        res += tn.read_until(til.encode(), timeout=timeout)
+    return res
 
 
 def _init(host, login_passwd, enable_passwd):
