@@ -5,9 +5,10 @@
     <title>Title</title>
     <script src="./js/jquery-3.4.1.min.js"></script>
     <style>
-        html{
+        html {
             background-color: white;
         }
+
         .div1 {
             width: 90px;
             height: 60px;
@@ -42,10 +43,12 @@
             margin-top: -115px;
             /*border: 2px solid red;*/
         }
-        .cp{
+
+        .cp {
             background: url('./jpg/computer.jpg') no-repeat;
-            background-size:100% 100%;
+            background-size: 100% 100%;
         }
+
         #line3 {
             width: 450px;
             height: 4px;
@@ -58,7 +61,7 @@
 
         .router {
             background: url('./jpg/router.jpg') no-repeat;
-            background-size:100% 100%;
+            background-size: 100% 100%;
         }
 
         #router1 {
@@ -114,56 +117,168 @@
         }
     </style>
     <script>
+        var routerA = ""
+        var routerB = ""
+        var routerC = ""
+        var hostA = ""
         $(document).ready(function () {
             $('.jump').hide()
             $('#router1').on('click', function () {
-                $('#pTitle').html('router1')
+                $('#pTitle').html('routerB')
+                $('#hidden').val('routerB')
                 $('.jump').show()
             })
+
             $('#router2').on('click', function () {
-                $('#pTitle').html('router2')
+                $('#pTitle').html('routerA')
+                $('#hidden').val('routerA')
                 $('.jump').show()
             })
+
             $('#router3').on('click', function () {
-                $('#pTitle').html('router3')
+                $('#pTitle').html('routerC')
+                $('#hidden').val('routerC')
                 $('.jump').show()
             })
+
             $('#button1').on('click', function () {
                 // $('#pTitle').html('router3')
+                var ip = $('#ip').val()
+                var taget = $('#hidden').val()
+                if (taget == 'routerB') {
+                    routerB = ip
+                } else if (taget == 'routerA') {
+                    routerA = ip;
+                } else if (taget == 'routerC') {
+                    routerC = ip
+                } else if (taget == 'hostA') {
+                    hostA = ip
+                }
+                $('#ip').val("")
                 $('.jump').hide()
             })
+
             $('#button2').on('click', function () {
                 // $('#pTitle').html('router3')
+                $('#ip').val("")
                 $('.jump').hide()
             })
-        })
 
+            $('#cp2').on('click', function () {
+                $('#pTitle').html('hostA')
+                $('#hidden').val('hostA')
+                $('.jump').show()
+            })
+            $('#subminStatic').on('click', function () {
+                if (routerA == '') {
+                    alert("routerA未配置")
+                    return;
+                }
+                if (routerB == '') {
+                    alert("routerB未配置")
+                    return;
+                }
+                if (routerC == '') {
+                    alert("routerC未配置")
+                    return;
+                }
+                if (hostA == '') {
+                    alert("hostA未配置")
+                    return;
+                }
+                $.ajax({
+                    url: "../setting/",
+                    type: "post",
+                    data: 'routerA=' + routerA +
+                        '&routerB=' + routerB +
+                        "&routerC=" + routerC +
+                        "&hostA=" + hostA +
+                        "&status=1",
+                    success: function (result) {
+                        alert(result)
+                    }
+                })
+
+            })
+
+
+            $('#sumbitDymatic').on('click', function () {
+                if (routerA == '') {
+                    alert("routerA未配置")
+                    return;
+                }
+                if (routerB == '') {
+                    alert("routerB未配置")
+                    return;
+                }
+
+                $.ajax({
+                    url: "../setting/",
+                    type: "post",
+                    data: 'routerA=' + routerA +
+                        '&routerB=' + routerB,
+                    success: function (result) {
+                        alert(result)
+                    }
+                })
+            })
+        });
+
+        //ajax
+        /*
+                let httpRequest;
+                document.getElementById("default").addEventListener('click', makeRequest);
+
+                function makeRequest() {
+                    httpRequest = new XMLHttpRequest();
+
+                    if (!httpRequest) {
+                        alert('Giving up :( Cannot create an XMLHTTP instance');
+                        return false;
+                    }
+                    httpRequest.onreadystatechange = alertContents;
+                    httpRequest.open('POST', 'test.txt');
+                    httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                    httpRequest.send();
+                };
+
+                function alertContents() {
+                    if (httpRequest.readyState === XMLHttpRequest.DONE) {
+                        if (httpRequest.status === 200) {
+                            alert("映射关系" + httpRequest.responseText);
+                        } else {
+                            alert('There was a problem with the request.');
+                        }
+                    }
+                }
+        */
 
     </script>
 </head>
 <body>
 <div class="main" id="main">
-    <div style="background-color: red" id="cp1" class="div1 cp"></div>
+    <div style="background-color: #ff0000" id="cp1" class="div1 cp"></div>
     <div id="line1"></div>
     <div id="router3" class="div1 router"></div>
     <div id="line2"></div>
     <div class="row">
-        <div id="router1" class="div1  inline inlineDiv router"> </div>
+        <div id="router1" class="div1  inline inlineDiv router"></div>
         <div id="line3" class="inline"></div>
-        <div id="router2" class="div1 inline inlineDiv router"> </div>
+        <div id="router2" class="div1 inline inlineDiv router"></div>
     </div>
     <div id="line4"></div>
     <div style="background-color: red" id="cp2" class="div1 cp"></div>
     <div id="default">
-        <button>自动配置</button>
-        <button>测试连接</button>
+        <button id="subminStatic">静态配置</button>
+        <button id="sumbitDymatic">动态配置</button>
     </div>
 </div>
 <div class="jump">
     <div class="table">
         <p id="pTitle"></p>
         <label>请输入ip</label>
-        <input id="ip"/>
+        <input id="ip" type="text">
+        <input id="hidden" type="hidden">
         <button id="button1">确定</button>
         <button id="button2">取消</button>
     </div>

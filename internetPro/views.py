@@ -18,20 +18,20 @@ global_settings
 # 接收传递的参数
 def setting(request):
     # 如果用户选择静态配置路由
-    if request.GET.get("status"):
+    if request.POST.get("status"):
         # 接收ip、mask配置 格式为10.0.0.1/25
-        routerA = request.GET.get("routerA")
+        routerA = request.POST.get("routerA")
         routerA_ip = routerA.split("/")[0]
         routerA_mask = routerA.split("/")[1]
-        routerB = request.GET.get("routerB")
+        routerB = request.POST.get("routerB")
         routerB_ip = routerB.split("/")[0]
         routerB_mask = routerB.split("/")[1]
         routerA_mask = transfer_mask(routerA_mask)
         routerB_mask = transfer_mask(routerB_mask)
 
         # 接收映射表配置 格式为10.0.0.1
-        hostA_ip = request.GET.get('hostA')
-        routerC_ip = request.GET.get('routerC')
+        hostA_ip = request.POST.get('hostA')
+        routerC_ip = request.POST.get('routerC')
 
         # 后端处理
 
@@ -48,10 +48,10 @@ def setting(request):
     # 如果用户选择动态配置路由
     else :
         # 接收ip、mask配置 格式为10.0.0.1/25
-        routerA = request.GET.get("routerA")
+        routerA = request.POST.get("routerA")
         routerA_ip = routerA.split("/")[0]
         routerA_mask = routerA.split("/")[1]
-        routerB = request.GET.get("routerB")
+        routerB = request.POST.get("routerB")
         routerB_ip = routerB.split("/")[0]
         routerB_mask = routerB.split("/")[1]
         routerA_mask = transfer_mask(routerA_mask)
