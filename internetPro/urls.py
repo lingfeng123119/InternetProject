@@ -15,7 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from internetPro.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('setting/', setting),
+    path('info/', getInfo),
+    path('table/', getTranslationTable),
 ]
