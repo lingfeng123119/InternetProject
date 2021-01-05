@@ -234,33 +234,30 @@
                 })
             })
         });
-
-        //ajax
-        /*
-                let httpRequest;
-                document.getElementById("default").addEventListener('click', makeRequest);
-                function makeRequest() {
-                    httpRequest = new XMLHttpRequest();
-                    if (!httpRequest) {
-                        alert('Giving up :( Cannot create an XMLHTTP instance');
-                        return false;
-                    }
-                    httpRequest.onreadystatechange = alertContents;
-                    httpRequest.open('POST', 'test.txt');
-                    httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                    httpRequest.send();
-                };
-                function alertContents() {
-                    if (httpRequest.readyState === XMLHttpRequest.DONE) {
-                        if (httpRequest.status === 200) {
-                            alert("映射关系" + httpRequest.responseText);
-                        } else {
-                            alert('There was a problem with the request.');
-                        }
-                    }
+           
+         $('#getInfo').on('click',function () {
+            $.ajax({
+                url:"../info/",
+                type:"get",
+                dataType:"String",
+                success:function (result) {
+                    alert(result)
                 }
-        */
+            })
+        })
+        
+        $('#getTrans').on('click',function () {
+            $.ajax({
+                url:"../table/",
+                type:"get",
+                dataType:"String",
+                success:function (result) {
+                    alert(result)
+                }
+            })
+        })
 
+      
 
     </script>
 </head>
@@ -280,6 +277,8 @@
     <div id="default">
         <button id="subminStatic">静态配置</button>
         <button id="sumbitDymatic">动态配置</button>
+        <button id="getInfo">查看统计信息</button>
+        <button id="getTrans">查看映射表</button>
     </div>
 </div>
 <div class="jump">
