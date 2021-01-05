@@ -37,12 +37,12 @@ def setting(request):
 
         # 后端处理
         global_settings.use_static = False
-        global_settings.rta['s0/0']['ip'] = routerA_ip
-        global_settings.rta['s0/0']['mask'] = routerA_mask
-        global_settings.rtb['s0/0']['ip'] = routerB_ip
-        global_settings.rtb['s0/0']['mask'] = routerB_mask
+        global_settings.rta['s0/0/0']['ip'] = routerA_ip
+        global_settings.rta['s0/0/0']['mask'] = routerA_mask
+        global_settings.rtb['s0/0/0']['ip'] = routerB_ip
+        global_settings.rtb['s0/0/0']['mask'] = routerB_mask
         global_settings.host_a['ip'] = hostA_ip
-        global_settings.rtc['s0/0']['ip'] = routerC_ip
+        global_settings.rtc['s0/0/0']['ip'] = routerC_ip
 
         is_success, message = nat_config()
         return HttpResponse(message)
@@ -61,10 +61,10 @@ def setting(request):
 
         # 后端处理
         global_settings.use_static = True
-        global_settings.rta['s0/0']['ip'] = routerA_ip
-        global_settings.rta['s0/0']['mask'] = routerA_mask
-        global_settings.rtb['s0/0']['ip'] = routerB_ip
-        global_settings.rtb['s0/0']['mask'] = routerB_mask
+        global_settings.rta['s0/0/0']['ip'] = routerA_ip
+        global_settings.rta['s0/0/0']['mask'] = routerA_mask
+        global_settings.rtb['s0/0/0']['ip'] = routerB_ip
+        global_settings.rtb['s0/0/0']['mask'] = routerB_mask
         is_success, message = nat_config()
         return HttpResponse(message)
 
@@ -89,7 +89,7 @@ def transfer_mask(mask):
     mask_int2 = int(mask_byte[8:16], 2)
     mask_int3 = int(mask_byte[16:24], 2)
     mask_int4 = int(mask_byte[24:33], 2)
-    mask_int = "%d.%d.%d.%d" % (mask_int1,mask_int2,mask_int3,mask_int4)
+    mask_int = "%d.%d.%d.%d" % (mask_int1, mask_int2, mask_int3, mask_int4)
     return mask_int
 
 

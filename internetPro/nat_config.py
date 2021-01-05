@@ -2,9 +2,6 @@ import telnetlib
 import re
 
 
-
-
-
 def valid_ip(ip):
     parts = ip.split('.')
     if len(parts) != 4:
@@ -68,7 +65,7 @@ class NatSettings:
                 'ip': '10.0.0.1',
                 'mask': '255.0.0.0'
             },
-            'c': 's0/0/0'
+            'c': 'f0/0'
         }
         self.rtb = {
             's0/0/0': {
@@ -79,7 +76,11 @@ class NatSettings:
                 'ip': '192.168.3.1',
                 'mask': '255.255.255.0'
             },
-            'c': 's0/0/0'
+            'f0/1': {
+                'ip': '10.0.0.3',
+                'mask': '255.0.0.0'
+            },
+            'c': 'f0/1'
         }
         self.rtc = {
             'f0/0': {
@@ -118,6 +119,7 @@ global_settings = NatSettings()
 
 def nat_config():
     settings = global_settings
+    print('RTA')
     atn = _init(settings.rta[settings.rta['c']]['ip'],
                 settings.login_passwd,
                 settings.enable_passwd)
@@ -125,6 +127,7 @@ def nat_config():
         if intn != 'c' and intn != settings.rta['c']:
             _config_int(atn, intn, settings.rta[intn])
 
+    print('RTB')
     btn = _init(settings.rtb[settings.rtb['c']]['ip'],
                 settings.login_passwd,
                 settings.enable_passwd)
@@ -132,22 +135,26 @@ def nat_config():
         if intn != 'c' and intn != settings.rtb['c']:
             _config_int(btn, intn, settings.rtb[intn])
 
+    print('RTC')
     ctn = _init(settings.rtc[settings.rtc['c']]['ip'],
                 settings.login_passwd,
                 settings.enable_passwd)
 
     # Step 1. Basic ip address config.
     # 1.1 RTA
+    print('RTA')
     _inputln(atn, 'conf t')
     _read_until(atn, 'Router(config)#')
     _inputln(atn, 'ip route 0.0.0.0 0.0.0.0 %s' % settings.rtb['s0/0/0']['ip'])
     _read_until(atn, 'Router(config)#')
     # 1.2 RTB
+    print('RTB')
     _inputln(btn, 'conf t')
     _read_until(btn, 'Router(config)#')
     _inputln(btn, 'ip route %s %s %s' % (settings.xyz_net['ip'], settings.xyz_net['mask'], settings.rta['s0/0/0']['ip']))
     _read_until(btn, 'Router(config)#')
     # 1.3 RTC
+    print('RTC')
     _inputln(ctn, 'conf t')
     _read_until(ctn, 'Router(config)#')
     _inputln(ctn, 'ip route 0.0.0.0 0.0.0.0 %s' % settings.rta['f0/0']['ip'])
@@ -155,6 +162,7 @@ def nat_config():
     _inputln(ctn, 'end')
     _read_until(ctn, 'Router#')
     # 1.4 Test connection.
+    print('RTA')
     _inputln(atn, 'end')
     _read_until(atn, 'Router#')
     if _test_ping(atn, settings.host_a['ip']) < .5:
@@ -174,14 +182,14 @@ def nat_config():
         # 2.1-2 Dynamic NAT
         clear_static_nat_config(atn, settings)
         _inputln(atn, 'ip nat pool globalXYZ %s %s netmask %s' % (
-            _get_first_ip(settings.xyz_net['ip'], settings.xyz_net['mask']), 
+            _get_first_ip(settings.xyz_net['ip'], settings.xyz_net['mask']),
             _get_last_ip(settings.xyz_net['ip'], settings.xyz_net['mask']),
             settings.xyz_net['mask']
         ))
         _read_until(atn, 'Router(config)#')
         _inputln(atn, 'access-list 1 permit %s %s' % (
             _int_to_v4(_convert_v4(settings.rta['f0/0']['ip']) & _convert_v4(settings.rta['f0/0']['mask'])),
-            _int_to_v4(~_convert_v4(settings.rta['f0/0']['ip']) % (1 << 32))
+            _int_to_v4(~_convert_v4(settings.rta['f0/0']['mask']) % (1 << 32))
         ))
         _read_until(atn, 'Router(config)#')
         _inputln(atn, 'ip nat inside source list 1 pool globalXYZ overload')
@@ -193,19 +201,21 @@ def nat_config():
     _read_until(atn, 'Router(config-if)#')
     _inputln(atn, 'int s0/0/0')
     _read_until(atn, 'Router(config-if)#')
+    _inputln(atn, 'ip nat outside')
+    _read_until(atn, 'Router(config-if)#')
     _inputln(atn, 'end')
     _read_until(atn, 'Router#')
     # 2.3 Test connection.
-    if settings.use_static:
-        if _test_ping(ctn, settings.host_b['ip']) < .5:
-            return False, 'Failed to ping host B from RTC after step 2.'
+    print('RTC')
+    if _test_ping(ctn, settings.host_b['ip']) < .5:
+        return False, 'Failed to ping host B from RTC after step 2.'
 
     return True, 'Success.'
 
 
 def clear_static_nat_config(tn, settings):
     for private_ip, public_ip in settings.static_nat.items():
-        _inputln(tn, 'no ip nat inside source static %s %s', (private_ip, public_ip))
+        _inputln(tn, 'no ip nat inside source static %s %s' % (private_ip, public_ip))
         _read_until(tn, 'Router(config)#')
 
 
@@ -214,11 +224,19 @@ def get_translations():
     atn = _init(settings.rta[settings.rta['c']]['ip'],
                 settings.login_passwd,
                 settings.enable_passwd)
-    return ''
+    _inputln(atn, 'show ip nat translations verbose')
+    res = _read_until(atn, 'Router#', timeout=5).split('\n')
+    return '\n'.join(res[1:-1])
 
 
 def get_statistics():
-    return ''
+    settings = global_settings
+    atn = _init(settings.rta[settings.rta['c']]['ip'],
+                settings.login_passwd,
+                settings.enable_passwd)
+    _inputln(atn, 'show ip nat statistics')
+    res = _read_until(atn, 'Router#').split('\n')
+    return '\n'.join(res[1:-1])
 
 
 def _get_first_ip(net_ip, net_mask):
@@ -254,11 +272,17 @@ def _config_int(tn, int_name, ip_mask):
 
 
 def _inputln(tn, txt):
+    print('input:', txt)
     tn.write(('%s\n' % txt).encode())
 
 
-def _read_until(tn, til, timeout=None):
-    return tn.read_until(til.encode(), timeout=timeout)
+def _read_until(tn, til, timeout=None,):
+    res = tn.read_until(til.encode(), timeout=timeout).decode()
+    while res.find(til) < 0:
+        tn.write(b' ')
+        res += tn.read_until(til.encode(), timeout=timeout).decode()
+    #print('output:', res)
+    return res
 
 
 def _init(host, login_passwd, enable_passwd):
@@ -273,19 +297,7 @@ def _init(host, login_passwd, enable_passwd):
     return tn
 
 
-def main():
-    host = '10.0.0.3'
-    tn = telnetlib.Telnet(host)
-    print(tn.read_until(b'Password: '))
-    tn.write(b'cisco\n')
-    print(tn.read_until(b'Router>'))
-    tn.write(b'enable\n')
-    print(tn.read_until(b'Password: '))
-    tn.write(b'cisco\n')
-    print(tn.read_until(b'Router#'))
-    tn.write(b'show int\n')
-    res = tn.read_until(b'Router#', timeout=1).decode()
-    while res.find('Router#') < 0:
-        tn.write(b' ')
-        res += tn.read_until(b'Router#', timeout=1).decode()
-    print(res)
+if __name__ == '__main__':
+    print(nat_config())
+    print(get_translations())
+    print(get_statistics())
