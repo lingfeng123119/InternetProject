@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <script src="./js/jquery-3.4.1.min.js"></script>
+    <script src="./js/jquery-3.5.1.js"></script>
     <style>
         html {
             background-color: white;
@@ -101,7 +101,7 @@
         }
 
         .table {
-            height: 150px;
+            height: 250px;
             width: 400px;
             margin: auto;
             margin-top: 100px;
@@ -115,6 +115,9 @@
             width: 1000px;
             margin: auto;
         }
+        #getip{
+            font-size: 15px;
+        }
     </style>
     <script>
         var routerA = ""
@@ -124,20 +127,20 @@
         $(document).ready(function () {
             $('.jump').hide()
             $('#router1').on('click', function () {
-                $('#pTitle').html('routerB')
-                $('#hidden').val('routerB')
-                $('.jump').show()
-            })
-
-            $('#router2').on('click', function () {
                 $('#pTitle').html('routerA')
                 $('#hidden').val('routerA')
                 $('.jump').show()
             })
 
-            $('#router3').on('click', function () {
+            $('#router2').on('click', function () {
                 $('#pTitle').html('routerC')
                 $('#hidden').val('routerC')
+                $('.jump').show()
+            })
+
+            $('#router3').on('click', function () {
+                $('#pTitle').html('routerB')
+                $('#hidden').val('routerB')
                 $('.jump').show()
             })
 
@@ -146,13 +149,17 @@
                 var ip = $('#ip').val()
                 var taget = $('#hidden').val()
                 if (taget == 'routerB') {
-                    routerB = ip
+                    routerB = ip;
+                    $('#getip').append('routerB的ip为'+ip+'\n');
                 } else if (taget == 'routerA') {
                     routerA = ip;
+                    $('#getip').append('routerA的ip为'+ip+'\n');
                 } else if (taget == 'routerC') {
-                    routerC = ip
+                    routerC = ip;
+                    $('#getip').append('routerC的ip为'+ip+'\n');
                 } else if (taget == 'hostA') {
-                    hostA = ip
+                    hostA = ip;
+                    $('#getip').append('hostA的ip为'+ip+'\n');
                 }
                 $('#ip').val("")
                 $('.jump').hide()
@@ -228,10 +235,8 @@
         /*
                 let httpRequest;
                 document.getElementById("default").addEventListener('click', makeRequest);
-
                 function makeRequest() {
                     httpRequest = new XMLHttpRequest();
-
                     if (!httpRequest) {
                         alert('Giving up :( Cannot create an XMLHTTP instance');
                         return false;
@@ -241,7 +246,6 @@
                     httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                     httpRequest.send();
                 };
-
                 function alertContents() {
                     if (httpRequest.readyState === XMLHttpRequest.DONE) {
                         if (httpRequest.status === 200) {
@@ -252,6 +256,7 @@
                     }
                 }
         */
+
 
     </script>
 </head>
@@ -281,6 +286,7 @@
         <input id="hidden" type="hidden">
         <button id="button1">确定</button>
         <button id="button2">取消</button>
+        <p id="getip"></p>
     </div>
 </div>
 
