@@ -115,7 +115,7 @@
             width: 1000px;
             margin: auto;
         }
-        #getip{
+        #getip1,#getip2,#getip3,#gethost{
             font-size: 15px;
         }
     </style>
@@ -150,16 +150,20 @@
                 var taget = $('#hidden').val()
                 if (taget == 'routerB') {
                     routerB = ip;
-                    $('#getip').append('routerB的ip为'+ip+'\n');
+                    $('#getip1').empty();
+                    $('#getip1').append('routerB的ip为'+ip);
                 } else if (taget == 'routerA') {
                     routerA = ip;
-                    $('#getip').append('routerA的ip为'+ip+'\n');
+                    $('#getip2').empty();
+                    $('#getip2').append('routerA的ip为'+ip);
                 } else if (taget == 'routerC') {
                     routerC = ip;
-                    $('#getip').append('routerC的ip为'+ip+'\n');
+                    $('#getip3').empty();
+                    $('#getip3').append('routerC的ip为'+ip);
                 } else if (taget == 'hostA') {
                     hostA = ip;
-                    $('#getip').append('hostA的ip为'+ip+'\n');
+                    $('#gethost').empty();
+                    $('#gethost').append('hostA的ip为'+ip);
                 }
                 $('#ip').val("")
                 $('.jump').hide()
