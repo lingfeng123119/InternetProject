@@ -18,8 +18,7 @@ global_settings
 # 接收传递的参数
 def setting(request):
     # 如果用户选择静态配置路由
-
-    if request.POST.get("status") == 'static':
+    if request.POST.get("status") == '1':
 
         # 接收ip、mask配置 格式为10.0.0.1/25
         routerA = request.POST.get("routerA")
