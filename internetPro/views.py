@@ -19,7 +19,7 @@ global_settings
 def setting(request):
     # 如果用户选择静态配置路由
 
-    if request.POST.get("status") == 'active':
+    if request.POST.get("status") == 'static':
 
         # 接收ip、mask配置 格式为10.0.0.1/25
         routerA = request.POST.get("routerA")
@@ -36,13 +36,13 @@ def setting(request):
         routerC_ip = request.POST.get('routerC')
 
         # 后端处理
-        global_settings.use_static = False
+        global_settings.use_static = True
         global_settings.rta['s0/0/0']['ip'] = routerA_ip
         global_settings.rta['s0/0/0']['mask'] = routerA_mask
         global_settings.rtb['s0/0/0']['ip'] = routerB_ip
         global_settings.rtb['s0/0/0']['mask'] = routerB_mask
         global_settings.host_a['ip'] = hostA_ip
-        global_settings.rtc['s0/0/0']['ip'] = routerC_ip
+        global_settings.rtc['f0/0']['ip'] = routerC_ip
 
         is_success, message = nat_config()
         return HttpResponse(message)
@@ -60,7 +60,7 @@ def setting(request):
         routerB_mask = transfer_mask(routerB_mask)
 
         # 后端处理
-        global_settings.use_static = True
+        global_settings.use_static = False
         global_settings.rta['s0/0/0']['ip'] = routerA_ip
         global_settings.rta['s0/0/0']['mask'] = routerA_mask
         global_settings.rtb['s0/0/0']['ip'] = routerB_ip

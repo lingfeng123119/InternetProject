@@ -20,9 +20,6 @@ from internetPro.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('setting/', setting),
-<<<<<<< HEAD
-=======
     path('info/', getInfo),
     path('table/', getTranslationTable),
->>>>>>> 94ed959bc9f4f43b4a69c39d0ea5be3d6abf4e74
 ]
