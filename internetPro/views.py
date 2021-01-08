@@ -37,11 +37,11 @@ def setting(request):
         # 后端处理
         global_settings.use_static = True
         global_settings.rta['s0/0/0']['ip'] = routerA_ip
-        global_settings.rta['s0/0/0']['mask'] = routerA_mask
+        #global_settings.rta['s0/0/0']['mask'] = routerA_mask
         global_settings.rtb['s0/0/0']['ip'] = routerB_ip
-        global_settings.rtb['s0/0/0']['mask'] = routerB_mask
-        global_settings.host_a['ip'] = hostA_ip
-        global_settings.rtc['f0/0']['ip'] = routerC_ip
+        #global_settings.rtb['s0/0/0']['mask'] = routerB_mask
+        global_settings.static_nat[global_settings.rtc['f0/0']['ip']] = hostA_ip
+        global_settings.static_nat[global_settings.host_a['ip']] = routerC_ip
 
         is_success, message = nat_config()
         return HttpResponse(message)
@@ -80,7 +80,7 @@ def getInfo(request):
 # mask转换
 def transfer_mask(mask):
     mask_byte = ''
-    for i in range(1,int(mask)) :
+    for i in range(0,int(mask)) :
         mask_byte = mask_byte + '1'
     for j in range(int(mask), 32):
         mask_byte = mask_byte + '0'

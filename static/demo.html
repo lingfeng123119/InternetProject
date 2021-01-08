@@ -234,13 +234,11 @@
                     }
                 })
             })
-        });
-           
+
          $('#getInfo').on('click',function () {
             $.ajax({
                 url:"../info/",
                 type:"get",
-                dataType:"String",
                 success:function (result) {
                     alert(result)
                 }
@@ -251,12 +249,14 @@
             $.ajax({
                 url:"../table/",
                 type:"get",
-                dataType:"String",
                 success:function (result) {
                     alert(result)
                 }
             })
         })
+
+        });
+           
 
       
 

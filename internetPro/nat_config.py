@@ -136,6 +136,7 @@ def nat_config():
             _config_int(btn, intn, settings.rtb[intn])
 
     print('RTC')
+    print('RTC host', settings.rtc[settings.rtc['c']]['ip'])
     ctn = _init(settings.rtc[settings.rtc['c']]['ip'],
                 settings.login_passwd,
                 settings.enable_passwd)
